@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel de Vendas Porsche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,500..800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ficha técnica de showroom. Cabeçalho largo em caixa alta expandida, filtros numa faixa,
+   KPIs em linha, quatro perguntas em grade 2x2, tabela com detalhamento no fim. */
+:root{
+  --bg:#eceeec; --surface:#fbfbfa; --sunk:#f3f4f2; --ink:#14171a; --ink-2:#4a4f56; --muted:#767c84; --line:#d6d9d6;
+  --data:#2a78d6; --data-soft:#cde2fb; --fuel-1:#2a78d6; --fuel-2:#eb6834; --fuel-3:#1baf7a;
+  --ramp-lo:#e3edf9; --ramp-hi:#104281; --tile-empty:#e2e4e1; --tile-ink-dark:#14171a; --tile-ink-light:#ffffff;
+  --focus:#2a78d6; --tip-bg:#14171a; --tip-ink:#f4f5f3;
+  --f-display:"Archivo","Arial Narrow",Arial,sans-serif; --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --f-data:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111315; --surface:#191c1f; --sunk:#14171a; --ink:#f1f2f0; --ink-2:#bfc3c8; --muted:#8a9097; --line:#2b2f33;
+  --data:#3987e5; --data-soft:#1d3554; --fuel-1:#3987e5; --fuel-2:#d95926; --fuel-3:#199e70;
+  --ramp-lo:#2a4566; --ramp-hi:#9ec5f4; --tile-empty:#23272b; --focus:#6da7ec; --tip-bg:#f1f2f0; --tip-ink:#14171a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111315; --surface:#191c1f; --sunk:#14171a; --ink:#f1f2f0; --ink-2:#bfc3c8; --muted:#8a9097; --line:#2b2f33;
+  --data:#3987e5; --data-soft:#1d3554; --fuel-1:#3987e5; --fuel-2:#d95926; --fuel-3:#199e70;
+  --ramp-lo:#2a4566; --ramp-hi:#9ec5f4; --tile-empty:#23272b; --focus:#6da7ec; --tip-bg:#f1f2f0; --tip-ink:#14171a; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:28px 48px;display:flex;flex-direction:column;gap:20px}
+.num{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 32px;border-bottom:2px solid var(--ink);padding-bottom:16px}
+.eyebrow{font-family:var(--f-data);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:clamp(26px,4.2vw,44px);line-height:1;letter-spacing:-.01em;margin:6px 0 0;text-transform:uppercase;text-wrap:balance}
+.top p{margin:0;color:var(--ink-2);max-width:46ch}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 130px}
+.f label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.f select{font:inherit;min-width:0;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:7px 8px;width:100%}
+.f select.on{border-color:var(--data);box-shadow:inset 0 0 0 1px var(--data)}
+button{font:inherit;cursor:pointer}
+.reset{flex:0 0 auto;background:transparent;border:1px solid var(--ink-2);color:var(--ink);border-radius:4px;padding:7px 14px;font-weight:600}
+.reset:disabled{opacity:.4;cursor:default}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi .val{font-family:var(--f-display);font-stretch:112%;font-weight:700;font-size:clamp(24px,3vw,34px);line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:12px;color:var(--ink-2)}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qn{font-family:var(--f-data);font-size:11px;color:var(--muted);letter-spacing:.1em}
+.card h2{font-family:var(--f-display);font-stretch:112%;font-weight:700;font-size:18px;line-height:1.2;margin:2px 0 0;text-wrap:balance}
+.answer{margin:0;color:var(--ink-2);font-size:13.5px;border-left:2px solid var(--data);padding-left:10px}
+.answer b{color:var(--ink);font-weight:600}
+.empty{color:var(--muted);font-size:13px;padding:24px 0;text-align:center}
+
+/* barras horizontais */
+.bars{display:grid;gap:6px;align-items:center}
+.bars.q1{grid-template-columns:minmax(64px,auto) minmax(0,1.6fr) minmax(0,1fr)}
+.bars.q3{grid-template-columns:minmax(120px,auto) minmax(0,1fr)}
+.bars .hd{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-bottom:2px}
+.bars .nm{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-btn{display:contents}
+.bar{position:relative;min-width:0;overflow:hidden;height:22px;display:flex;align-items:center;gap:6px;cursor:pointer;border-radius:3px}
+.bar i{display:block;height:14px;background:var(--data);border-radius:0 4px 4px 0;min-width:2px;flex:0 0 auto}
+.bar.soft i{background:var(--ink-2);opacity:.55}
+.bar span{font-family:var(--f-data);font-size:11.5px;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.bar:hover i{filter:brightness(1.15)}
+.bar.dim i{opacity:.3}
+.bar.sel i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.refline{font-size:12px;color:var(--muted)}
+
+/* mapa em grade */
+.maptools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:5px 10px;color:var(--ink-2);font-size:12px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.legend .ramp{width:90px;height:8px;border-radius:2px;background:linear-gradient(90deg,var(--ramp-lo),var(--ramp-hi))}
+.legend .nz{width:10px;height:10px;border-radius:2px;background:var(--tile-empty);margin-left:6px}
+.mapbox{overflow-x:auto}
+.tilemap{display:grid;grid-template-columns:repeat(11,minmax(26px,1fr));gap:3px;min-width:320px}
+.tile{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--f-data);font-size:10.5px;font-weight:500;background:var(--tile-empty);color:var(--muted);border:0;padding:0}
+.tile.has{cursor:pointer}
+.tile.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.top5{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}
+.top5 b{font-family:var(--f-data);font-weight:500;color:var(--ink)}
+
+/* combustível */
+.stack-wrap{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px 10px;align-items:center}
+.stack-wrap .nm{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.stack{display:flex;height:30px;gap:2px}
+.stack div{height:100%;display:flex;align-items:center;padding-left:6px;font-family:var(--f-data);font-size:11.5px;color:#fff;overflow:hidden;white-space:nowrap;cursor:pointer;min-width:2px}
+.stack div:first-child{border-radius:3px 0 0 3px}.stack div:last-child{border-radius:0 3px 3px 0}
+.fuelleg{display:flex;flex-wrap:wrap;gap:14px}
+.fl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink)}
+.fl i{width:10px;height:10px;border-radius:2px;display:block}
+.fl small{font-family:var(--f-data);color:var(--ink-2);font-size:11.5px}
+
+/* tabela */
+.tablecard h2{margin-bottom:0}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:8px 10px;border-bottom:1px solid var(--ink)}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--f-data);font-variant-numeric:tabular-nums;font-size:12.5px}
+td:first-child{font-family:var(--f-body);font-size:13px}
+tr.fam td{font-weight:600}
+tr.fam td:first-child button{background:none;border:0;color:var(--ink);padding:0;font-weight:600;display:inline-flex;gap:8px;align-items:center}
+tr.fam .chev{display:inline-block;width:10px;transition:transform .15s;color:var(--muted)}
+tr.fam.open .chev{transform:rotate(90deg)}
+tr.mod td{color:var(--ink-2);background:var(--sunk)}
+tr.mod td:first-child{padding-left:30px}
+.share{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.share i{display:block;height:6px;background:var(--data);border-radius:0 3px 3px 0}
+tfoot td{font-weight:600;border-bottom:0;border-top:1px solid var(--ink)}
+
+footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:14px}
+
+#tip{position:fixed;pointer-events:none;background:var(--tip-bg);color:var(--tip-ink);font-size:12px;padding:7px 9px;border-radius:4px;max-width:240px;z-index:10;opacity:0;transition:opacity .08s;line-height:1.4}
+#tip b{font-weight:600}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:480px){.bars.q1{grid-template-columns:56px minmax(0,1.4fr) minmax(0,1fr)}.bars.q3{grid-template-columns:104px minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">100 vendas · Estados Unidos · valores em US$</div>
+      <h1>Vendas Porsche</h1>
+    </div>
+    <p>Quatro perguntas de negócio sobre produto, região, forma de pagamento e eletrificação. Clique em uma barra ou estado para filtrar.</p>
+  </header>
+
+  <section class="filters" aria-label="Filtros">
+    <div class="f"><label for="fAno">Ano da venda</label><select id="fAno"></select></div>
+    <div class="f"><label for="fReg">Região</label><select id="fReg"></select></div>
+    <div class="f"><label for="fUf">Estado</label><select id="fUf"></select></div>
+    <div class="f"><label for="fFam">Família</label><select id="fFam"></select></div>
+    <div class="f"><label for="fMod">Modelo</label><select id="fMod"></select></div>
+    <div class="f"><label for="fPag">Pagamento</label><select id="fPag"></select></div>
+    <div class="f"><label for="fComb">Combustível</label><select id="fComb"></select></div>
+    <button class="reset" id="reset" type="button">Limpar filtros</button>
+  </section>
+
+  <section class="kpis" aria-label="Indicadores">
+    <div class="kpi"><span class="lab">Vendas</span><span class="val" id="kVol"></span><span class="sub" id="kVolSub"></span></div>
+    <div class="kpi"><span class="lab">Receita</span><span class="val" id="kRec"></span><span class="sub" id="kRecSub"></span></div>
+    <div class="kpi"><span class="lab">Ticket médio</span><span class="val" id="kTic"></span><span class="sub" id="kTicSub"></span></div>
+    <div class="kpi"><span class="lab">Receita de elétricos</span><span class="val" id="kEle"></span><span class="sub" id="kEleSub"></span></div>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <div><div class="qn">PERGUNTA 1 · PRODUTO</div><h2>Qual família traz mais receita, e isso bate com o volume?</h2></div>
+      <p class="answer" id="a1"></p>
+      <div class="bars q1" id="q1"></div>
+    </article>
+
+    <article class="card">
+      <div><div class="qn">PERGUNTA 2 · GEOGRAFIA</div><h2>Onde está concentrada a receita?</h2></div>
+      <p class="answer" id="a2"></p>
+      <div class="maptools">
+        <div class="seg" role="group" aria-label="Métrica do mapa">
+          <button type="button" data-m="rec" aria-pressed="true">Receita</button>
+          <button type="button" data-m="vol" aria-pressed="false">Vendas</button>
+          <button type="button" data-m="tic" aria-pressed="false">Ticket médio</button>
+        </div>
+        <div class="legend"><span>menor</span><span class="ramp"></span><span>maior</span><span class="nz"></span><span>sem vendas</span></div>
+      </div>
+      <div class="mapbox"><div class="tilemap" id="map"></div></div>
+      <div class="top5" id="top5"></div>
+    </article>
+
+    <article class="card">
+      <div><div class="qn">PERGUNTA 3 · PAGAMENTO</div><h2>A forma de pagamento muda com o valor do carro?</h2></div>
+      <p class="answer" id="a3"></p>
+      <div class="bars q3" id="q3"></div>
+      <div class="refline" id="ref3"></div>
+    </article>
+
+    <article class="card">
+      <div><div class="qn">PERGUNTA 4 · ELETRIFICAÇÃO</div><h2>Os elétricos já pesam no faturamento?</h2></div>
+      <p class="answer" id="a4"></p>
+      <div class="stack-wrap" id="q4"></div>
+      <div class="fuelleg" id="leg4"></div>
+    </article>
+  </section>
+
+  <section class="card tablecard">
+    <div><div class="qn">DETALHE</div><h2>Desempenho por família e modelo</h2></div>
+    <div class="tscroll"><table>
+      <thead><tr><th>Família / modelo</th><th>Vendas</th><th>Receita</th><th>Ticket médio</th><th>% da receita</th></tr></thead>
+      <tbody id="tb"></tbody><tfoot id="tf"></tfoot>
+    </table></div>
+  </section>
+
+  <footer>
+    <span>Fonte: planilha de 100 vendas Porsche do desafio DIO, usando só as colunas sanitizadas. Nomes de clientes e vendedores foram removidos.</span>
+    <span>24 vendas têm data inválida na origem. Elas entram em todos os números e aparecem como "Sem data" no filtro de ano. A base é fictícia e inclui vendas datadas até 2027.</span>
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const RAW = [[6,null,"718 Cayman","718","Combustão",2022,79500.0,9800,"Credit Card","Boston","MA","Nordeste","Entregue"],[7,2024,"911 Turbo S","911","Combustão",2024,235000.0,1200,"Wire Transfer","Seattle","WA","Oeste","Entregue"],[8,2024,"Cayenne Coupe","Cayenne","Combustão",2023,112750.0,6400,"Financing","Austin","TX","Sul","Em trânsito"],[9,null,"Macan S","Macan","Combustão",2021,68900.0,28,"Cash","Denver","CO","Oeste","Pendente"],[10,2024,"Taycan 4S","Taycan","Elétrico",2024,121000.0,0,"Bank Transfer","Los Angeles","CA","Oeste","Entregue"],[11,2024,"Panamera 4","Panamera","Combustão",2023,104500.0,14500,"Credit Card","Miami","FL","Sul","Cancelado"],[12,2024,"911 Carrera S","911","Combustão",2020,96300.0,41000,"Lease","New York","NY","Nordeste","Entregue"],[13,null,"Cayenne E-Hybrid","Cayenne","Híbrido",2022,89750.0,11744,"Wire Transfer","San Diego","CA","Oeste","Pendente"],[14,2024,"718 Boxster","718","Combustão",2021,73500.0,22300,"Debit Card","Chicago","IL","Meio-Oeste","Em trânsito"],[15,2024,"Macan GTS","Macan","Combustão",2024,95000.0,3500,"Financing","Phoenix","AZ","Oeste","Em trânsito"],[16,2024,"Taycan Turbo","Taycan","Elétrico",2023,153200.5,11,"ACH Payment","Dallas","TX","Sul","Entregue"],[17,null,"911 GT3","911","Combustão",2024,241000.0,750,"Wire Transfer","Las Vegas","NV","Oeste","Pendente"],[18,2024,"Panamera Turbo S","Panamera","Combustão",2022,132000.0,19250,"Cash","San Jose","CA","Oeste","Entregue"],[19,2024,"Cayenne Turbo GT","Cayenne","Combustão",2024,188000.0,2100,"Crypto Payment","Houston","TX","Sul","Em trânsito"],[20,2024,"911 Carrera Cabriolet","911","Combustão",2023,127800.0,12000,"Credit Card","Atlanta","GA","Sul","Entregue"],[21,2025,"Macan","Macan","Combustão",2021,58900.0,33700,"Bank Transfer","Orlando","FL","Sul","Pendente"],[22,null,"718 Spyder RS","718","Combustão",2024,164000.0,900,"Financing","Portland","OR","Oeste","Em trânsito"],[23,2025,"Taycan Cross Turismo","Taycan","Elétrico",2023,118500.0,7800,"Wire Transfer","Charlotte","NC","Sul","Entregue"],[24,null,"Cayenne S","Cayenne","Combustão",2022,91300.0,16000,"Credit Card","Nashville","TN","Sul","Pendente"],[25,2025,"911 Targa 4S","911","Combustão",2024,158750.0,2500,"Lease","Minneapolis","MN","Meio-Oeste","Entregue"],[26,2025,"Panamera","Panamera","Combustão",2020,72000.0,49000,"Bank Transfer","Philadelphia","PA","Nordeste","Cancelado"],[27,2025,"Macan Electric","Macan","Elétrico",2025,86500.0,0,"Wire Transfer","San Antonio","TX","Sul","Entregue"],[28,null,"911 Dakar","911","Combustão",2024,270000.0,1050,"Cash","Salt Lake City","UT","Oeste","Aguardando retirada"],[29,2025,"Taycan GTS","Taycan","Elétrico",2023,139000.0,6250,"Financing","Raleigh","NC","Sul","Em trânsito"],[30,2025,"Cayenne","Cayenne","Combustão",2021,76800.0,38400,"Credit Card","Detroit","MI","Meio-Oeste","Entregue"],[31,null,"718 Cayman GT4 RS","718","Combustão",2024,173600.0,400,"Wire Transfer","Columbus","OH","Meio-Oeste","Pendente"],[32,2025,"911 Carrera GTS","911","Combustão",2022,119900.0,13600,"Cash","Indianapolis","IN","Meio-Oeste","Entregue"],[33,2025,"Panamera 4 E-Hybrid","Panamera","Híbrido",2023,109250.0,8900,"Lease","Fort Worth","TX","Sul","Em trânsito"],[34,2025,"Macan T","Macan","Combustão",2022,82000.0,21750,"Wire Transfer","Jacksonville","FL","Sul","Entregue"],[35,2025,"Taycan Turbo S","Taycan","Elétrico",2025,214000.0,0,"Crypto Payment","San Diego","CA","Oeste","Pendente"],[36,null,"911 Carrera","911","Combustão",2024,124500.0,4800,"Credit Card","Tampa","FL","Sul","Entregue"],[37,2025,"Cayenne S","Cayenne","Combustão",2023,98200.0,12200,"Bank Transfer","Sacramento","CA","Oeste","Pendente"],[38,2025,"Macan","Macan","Combustão",2022,67500.0,24100,"Financing","Cleveland","OH","Meio-Oeste","Entregue"],[39,2025,"Taycan","Taycan","Elétrico",2025,116900.0,0,"Wire Transfer","Milwaukee","WI","Meio-Oeste","Em trânsito"],[40,2025,"Panamera 4S","Panamera","Combustão",2024,112000.0,10,"Cash","Kansas City","MO","Meio-Oeste","Entregue"],[41,2025,"718 Boxster","718","Combustão",2021,74000.0,31000,"Debit Card","Omaha","NE","Meio-Oeste","Cancelado"],[42,2025,"911 Turbo","911","Combustão",2024,198300.0,2400,"Wire Transfer","Albuquerque","NM","Oeste","Em trânsito"],[43,null,"Cayenne Coupe","Cayenne","Combustão",2023,103750.0,6773,"Wire Transfer","Tucson","AZ","Oeste","Pendente"],[44,null,"Macan GTS","Macan","Combustão",2024,93600.0,5800,"Financing","Fresno","CA","Oeste","Em trânsito"],[45,2025,"Taycan 4S","Taycan","Elétrico",2025,129000.0,0,"ACH Payment","Virginia Beach","VA","Sul","Em trânsito"],[46,2025,"Panamera Turbo","Panamera","Combustão",2022,136000.0,18400,"Credit Card","Colorado Springs","CO","Oeste","Entregue"],[47,null,"911 GT3 RS","911","Combustão",2024,286500.0,700,"Wire Transfer","Arlington","TX","Sul","Pendente"],[48,2026,"Cayenne E-Hybrid","Cayenne","Híbrido",2023,92800.0,15000,"Lease","Bakersfield","CA","Oeste","Entregue"],[49,2026,"Macan T","Macan","Combustão",2022,72400.0,19750,"Cash","Mesa","AZ","Oeste","Aguardando retirada"],[50,2026,"Taycan Turbo","Taycan","Elétrico",2025,158500.0,3200,"Crypto Payment","Atlanta","GA","Sul","Entregue"],[51,2026,"718 Cayman","718","Combustão",2021,69900.0,27600,"Bank Transfer","Long Beach","CA","Oeste","Pendente"],[52,null,"911 Targa 4","911","Combustão",2024,141250.0,2100,"Financing","Oakland","CA","Oeste","Em trânsito"],[53,2026,"Panamera","Panamera","Combustão",2020,71500.0,52000,"Wire Transfer","Tulsa","OK","Sul","Entregue"],[54,2026,"Cayenne Turbo","Cayenne","Combustão",2023,146800.0,11300,"Credit Card","Wichita","KS","Meio-Oeste","Pendente"],[55,2026,"Macan Electric","Macan","Elétrico",2025,89700.0,0,"Lease","New Orleans","LA","Sul","Entregue"],[56,2026,"911 Carrera S","911","Combustão",2022,104600.0,15900,"Bank Transfer","Honolulu","HI","Oeste","Cancelado"],[57,null,"Taycan GTS","Taycan","Elétrico",2024,142000.0,6600,"Wire Transfer","Anaheim","CA","Oeste","Entregue"],[58,2026,"Cayenne","Cayenne","Combustão",2021,78400.0,40250,"Cash","Henderson","NV","Oeste","Pendente"],[59,null,"718 Spyder RS","718","Combustão",2025,169000.0,850,"Financing","Lexington","KY","Sul","Em trânsito"],[60,2026,"911 Dakar","911","Combustão",2024,268900.0,1400,"Credit Card","Riverside","CA","Oeste","Entregue"],[61,2026,"Panamera 4","Panamera","Combustão",2023,101300.0,12700,"Wire Transfer","Corpus Christi","TX","Sul","Pendente"],[62,2026,"Macan S","Macan","Combustão",2021,66750.0,29800,"Cash","St. Louis","MO","Meio-Oeste","Entregue"],[63,2026,"Taycan Cross Turismo","Taycan","Elétrico",2024,127900.0,7500,"Lease","Pittsburgh","PA","Nordeste","Em trânsito"],[64,2026,"Cayenne Turbo GT","Cayenne","Combustão",2025,200000.0,1950,"Wire Transfer","Cincinnati","OH","Meio-Oeste","Entregue"],[65,2026,"911 Carrera Cabriolet","911","Combustão",2023,132000.0,8800,"Crypto Payment","Anchorage","AK","Oeste","Pendente"],[66,2026,"718 Cayman GT4 RS","718","Combustão",2024,176400.0,600,"Credit Card","Plano","TX","Sul","Entregue"],[67,null,"Panamera 4 E-Hybrid","Panamera","Híbrido",2022,108500.0,16200,"Bank Transfer","Newark","NJ","Nordeste","Cancelado"],[68,2026,"Macan","Macan","Combustão",2021,59000.0,36000,"Financing","Greensboro","NC","Sul","Em trânsito"],[69,2026,"Taycan Turbo S","Taycan","Elétrico",2025,218000.0,0,"Wire Transfer","Lincoln","NE","Meio-Oeste","Pendente"],[70,null,"Cayenne S","Cayenne","Combustão",2024,99950.0,5300,"Debit Card","Jersey City","NJ","Nordeste","Entregue"],[71,2026,"911 Carrera GTS","911","Combustão",2024,121750.0,5872,"Credit Card","Chandler","AZ","Oeste","Entregue"],[72,2026,"718 Boxster GTS","718","Combustão",2023,91500.0,13300,"Lease","Reno","NV","Oeste","Em trânsito"],[73,2026,"Panamera Turbo S","Panamera","Combustão",2022,134000.0,20100,"Wire Transfer","Buffalo","NY","Nordeste","Em trânsito"],[74,2026,"Macan GTS","Macan","Combustão",2024,96800.0,0,"ACH Payment","Durham","NC","Sul","Entregue"],[75,2026,"Taycan 4S","Taycan","Elétrico",2025,131600.0,2900,"Wire Transfer","Laredo","TX","Sul","Pendente"],[76,2026,"Cayenne E-Hybrid","Cayenne","Híbrido",2023,94300.0,13100,"Cash","Madison","WI","Meio-Oeste","Entregue"],[77,2026,"911 Turbo S","911","Combustão",2025,242000.0,1100,"Crypto Payment","Lubbock","TX","Sul","Aguardando retirada"],[78,2026,"718 Cayman S","718","Combustão",2022,82750.0,22500,"Credit Card","Toledo","OH","Meio-Oeste","Cancelado"],[79,2026,"Macan Electric","Macan","Elétrico",2026,91300.0,0,"Wire Transfer","Irvine","CA","Oeste","Entregue"],[80,2026,"Panamera","Panamera","Combustão",2021,79900.0,44800,"Financing","Garland","TX","Sul","Pendente"],[81,null,"Cayenne Coupe","Cayenne","Combustão",2024,111000.0,6700,"Bank Transfer","Irving","TX","Sul","Em trânsito"],[82,2026,"911 Targa 4S","911","Combustão",2023,156500.0,4200,"Cash","Chesapeake","VA","Sul","Entregue"],[83,2026,"Taycan","Taycan","Elétrico",2025,119900.0,1250,"Lease","Scottsdale","AZ","Oeste","Pendente"],[84,null,"Macan T","Macan","Combustão",2022,73200.0,18600,"Wire Transfer","Norfolk","VA","Sul","Entregue"],[85,2026,"911 GT3","911","Combustão",2024,224000.0,3000,"Wire Transfer","Boise","ID","Oeste","Em trânsito"],[86,2027,"911 Carrera","911","Combustão",2024,126900.0,7200,"Credit Card","Orlando","FL","Sul","Entregue"],[87,2027,"Cayenne","Cayenne","Combustão",2023,84500.0,21400,"Bank Transfer","San Jose","CA","Oeste","Pendente"],[88,2027,"Macan S","Macan","Combustão",2022,69800.0,26300,"Financing","Tampa","FL","Sul","Entregue"],[89,null,"Taycan 4S","Taycan","Elétrico",2025,132700.0,0,"Wire Transfer","Denver","CO","Oeste","Em trânsito"],[90,2027,"Panamera","Panamera","Combustão",2021,81000.0,42,"Cash","Austin","TX","Sul","Entregue"],[91,2027,"718 Cayman","718","Combustão",2023,78900.0,17500,"Debit Card","Seattle","WA","Oeste","Cancelado"],[92,2027,"911 Turbo S","911","Combustão",2026,249300.0,900,"Wire Transfer","Boston","MA","Nordeste","Em trânsito"],[93,null,"Cayenne Coupe","Cayenne","Combustão",2024,108750.0,5530,"Wire Transfer","Phoenix","AZ","Oeste","Pendente"],[94,null,"Macan Electric","Macan","Elétrico",2026,92600.0,0,"Financing","Chicago","IL","Meio-Oeste","Em trânsito"],[95,2027,"Taycan Turbo","Taycan","Elétrico",2025,164000.0,0,"ACH Payment","Dallas","TX","Sul","Em trânsito"],[96,2027,"Panamera 4S","Panamera","Combustão",2024,119000.0,13400,"Credit Card","San Francisco","CA","Oeste","Entregue"],[97,null,"911 GT3","911","Combustão",2026,232500.0,1700,"Wire Transfer","Las Vegas","NV","Oeste","Pendente"],[98,2027,"Cayenne E-Hybrid","Cayenne","Híbrido",2023,96800.0,14000,"Lease","Charlotte","NC","Sul","Entregue"],[99,2027,"Macan T","Macan","Combustão",2022,74400.0,20750,"Cash","Mesa","AZ","Oeste","Aguardando retirada"],[100,2027,"Taycan GTS","Taycan","Elétrico",2025,148500.0,5200,"Crypto Payment","Atlanta","GA","Sul","Entregue"],[101,2027,"718 Boxster","718","Combustão",2021,71900.0,29600,"Bank Transfer","Long Beach","CA","Oeste","Pendente"],[102,null,"911 Targa 4","911","Combustão",2024,143250.0,3100,"Financing","Oakland","CA","Oeste","Em trânsito"],[103,2027,"Panamera Turbo","Panamera","Combustão",2020,137500.0,48000,"Wire Transfer","Tulsa","OK","Sul","Entregue"],[104,2027,"Cayenne Turbo GT","Cayenne","Combustão",2025,204800.0,3300,"Credit Card","Wichita","KS","Meio-Oeste","Pendente"],[105,2027,"911 Dakar","911","Combustão",2024,271700.0,1050,"Lease","New Orleans","LA","Sul","Entregue"]];
+const D = RAW.map(r=>({id:r[0],ano:r[1],modelo:r[2],fam:r[3],comb:r[4],anoMod:r[5],preco:r[6],km:r[7],pag:r[8],cidade:r[9],uf:r[10],reg:r[11],status:r[12]}));
+const PAG = {"Wire Transfer":"Transferência (wire)","Bank Transfer":"Transferência bancária","ACH Payment":"ACH","Credit Card":"Cartão de crédito","Debit Card":"Cartão de débito","Cash":"Dinheiro","Financing":"Financiamento","Lease":"Leasing","Crypto Payment":"Criptomoeda"};
+const UFN = {AK:"Alasca",AL:"Alabama",AR:"Arkansas",AZ:"Arizona",CA:"Califórnia",CO:"Colorado",CT:"Connecticut",DC:"Distrito de Colúmbia",DE:"Delaware",FL:"Flórida",GA:"Geórgia",HI:"Havaí",IA:"Iowa",ID:"Idaho",IL:"Illinois",IN:"Indiana",KS:"Kansas",KY:"Kentucky",LA:"Luisiana",MA:"Massachusetts",MD:"Maryland",ME:"Maine",MI:"Michigan",MN:"Minnesota",MO:"Missouri",MS:"Mississippi",MT:"Montana",NC:"Carolina do Norte",ND:"Dakota do Norte",NE:"Nebraska",NH:"New Hampshire",NJ:"Nova Jersey",NM:"Novo México",NV:"Nevada",NY:"Nova York",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pensilvânia",RI:"Rhode Island",SC:"Carolina do Sul",SD:"Dakota do Sul",TN:"Tennessee",TX:"Texas",UT:"Utah",VA:"Virgínia",VT:"Vermont",WA:"Washington",WI:"Wisconsin",WV:"Virgínia Ocidental",WY:"Wyoming"};
+const GRID = [["AK",0,0],["ME",0,10],["WI",1,5],["VT",1,9],["NH",1,10],
+ ["WA",2,0],["ID",2,1],["MT",2,2],["ND",2,3],["MN",2,4],["IL",2,5],["MI",2,6],["NY",2,8],["MA",2,9],
+ ["OR",3,0],["NV",3,1],["WY",3,2],["SD",3,3],["IA",3,4],["IN",3,5],["OH",3,6],["PA",3,7],["NJ",3,8],["CT",3,9],["RI",3,10],
+ ["CA",4,0],["UT",4,1],["CO",4,2],["NE",4,3],["MO",4,4],["KY",4,5],["WV",4,6],["VA",4,7],["MD",4,8],["DE",4,9],
+ ["AZ",5,1],["NM",5,2],["KS",5,3],["AR",5,4],["TN",5,5],["NC",5,6],["SC",5,7],["DC",5,8],
+ ["OK",6,3],["LA",6,4],["MS",6,5],["AL",6,6],["GA",6,7],["HI",7,0],["TX",7,3],["FL",7,8]];
+const REG_UF = {}; D.forEach(d=>REG_UF[d.uf]=d.reg);
+const FUELS = [["Combustão","--fuel-1"],["Elétrico","--fuel-2"],["Híbrido","--fuel-3"]];
+
+const F = {ano:"",reg:"",uf:"",fam:"",mod:"",pag:"",comb:""};
+let mapMetric = "rec";
+const $ = id=>document.getElementById(id);
+const uniq = a=>[...new Set(a)];
+const sum = a=>a.reduce((s,x)=>s+x,0);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function money(v){ // US$ 12,8 mi / US$ 128,3 mil
+  if(v>=1e6) return "US$ "+(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1,minimumFractionDigits:1})+" mi";
+  if(v>=1e3) return "US$ "+(v/1e3).toLocaleString("pt-BR",{maximumFractionDigits:1,minimumFractionDigits:0})+" mil";
+  return "US$ "+v.toLocaleString("pt-BR",{maximumFractionDigits:0});
+}
+const pct = (a,b)=> b? (a/b*100).toLocaleString("pt-BR",{maximumFractionDigits:0})+"%" : "–";
+const plural = (n,s,p)=> n+" "+(n===1?s:p);
+
+function agg(rows,key){
+  const m = new Map();
+  rows.forEach(r=>{const k=r[key]; const o=m.get(k)||{k,vol:0,rec:0}; o.vol++; o.rec+=r.preco; m.set(k,o);});
+  return [...m.values()].map(o=>({...o,tic:o.rec/o.vol}));
+}
+
+function match(r,skip){
+  const sk=[].concat(skip||[]);
+  if(!sk.includes("ano") && F.ano){ if(F.ano==="none"? r.ano!==null : String(r.ano)!==F.ano) return false; }
+  if(!sk.includes("reg") && F.reg && r.reg!==F.reg) return false;
+  if(!sk.includes("uf") && F.uf && r.uf!==F.uf) return false;
+  if(!sk.includes("fam") && F.fam && r.fam!==F.fam) return false;
+  if(!sk.includes("mod") && F.mod && r.modelo!==F.mod) return false;
+  if(!sk.includes("pag") && F.pag && r.pag!==F.pag) return false;
+  if(!sk.includes("comb") && F.comb && r.comb!==F.comb) return false;
+  return true;
+}
+
+function fillSelect(id,key,all,opts,labeler){
+  const el=$(id), cur=F[key];
+  el.innerHTML = `<option value="">${all}</option>` + opts.map(o=>`<option value="${esc(o)}">${esc(labeler?labeler(o):o)}</option>`).join("");
+  if(cur && !opts.includes(cur)) F[key]="";
+  el.value = F[key]; el.classList.toggle("on",!!F[key]);
+}
+function buildFilters(){
+  const yrs = uniq(D.map(d=>d.ano)).filter(x=>x!==null).sort();
+  fillSelect("fAno","ano","Todos",[...yrs.map(String),"none"],v=>v==="none"?"Sem data":v);
+  fillSelect("fReg","reg","Todas",uniq(D.map(d=>d.reg)).sort());
+  fillSelect("fUf","uf","Todos",uniq(D.filter(d=>!F.reg||d.reg===F.reg).map(d=>d.uf)).sort(),v=>v+" · "+UFN[v]);
+  fillSelect("fFam","fam","Todas",uniq(D.map(d=>d.fam)).sort());
+  fillSelect("fMod","mod","Todos",uniq(D.filter(d=>!F.fam||d.fam===F.fam).map(d=>d.modelo)).sort());
+  fillSelect("fPag","pag","Todos",uniq(D.map(d=>d.pag)).sort((a,b)=>PAG[a].localeCompare(PAG[b])),v=>PAG[v]);
+  fillSelect("fComb","comb","Todos",FUELS.map(f=>f[0]));
+  $("reset").disabled = !Object.values(F).some(Boolean);
+}
+function setF(key,val){
+  F[key] = (F[key]===val? "" : val);
+  if(key==="fam" && F.mod && !D.some(d=>d.modelo===F.mod && (!F.fam||d.fam===F.fam))) F.mod="";
+  if(key==="mod" && F.mod){ F.fam = D.find(d=>d.modelo===F.mod).fam; }
+  if(key==="reg" && F.uf && F.reg && REG_UF[F.uf]!==F.reg) F.uf="";
+  if(key==="uf" && F.uf){ F.reg = REG_UF[F.uf]; }
+  render();
+}
+
+function render(){
+  buildFilters();
+  const rows = D.filter(r=>match(r));
+  const tot = sum(rows.map(r=>r.preco)), n=rows.length;
+
+  // KPIs
+  $("kVol").textContent = n;
+  const sem = rows.filter(r=>r.ano===null).length;
+  $("kVolSub").textContent = n===D.length ? `${sem} sem data de venda` : `de ${D.length} no total`;
+  $("kRec").textContent = money(tot);
+  $("kRecSub").textContent = n===D.length ? "soma dos preços de venda" : pct(tot,sum(D.map(d=>d.preco)))+" da receita total";
+  $("kTic").textContent = n? money(tot/n) : "–";
+  const pr = rows.map(r=>r.preco).sort((a,b)=>a-b);
+  $("kTicSub").textContent = n? `de ${money(pr[0])} a ${money(pr[pr.length-1])}` : "sem vendas";
+  const ele = sum(rows.filter(r=>r.comb==="Elétrico").map(r=>r.preco));
+  $("kEle").textContent = pct(ele,tot);
+  $("kEleSub").textContent = money(ele)+" em "+plural(rows.filter(r=>r.comb==="Elétrico").length,"venda","vendas");
+
+  const EMPTY = '<div class="empty" style="grid-column:1/-1">Nenhuma venda com esses filtros.</div>';
+
+  // Q1 família: ignora o filtro de família/modelo para comparar as linhas
+  const r1 = D.filter(r=>match(r,["fam","mod"]));
+  const fam = agg(r1,"fam").sort((a,b)=>b.rec-a.rec);
+  const mxR = Math.max(...fam.map(f=>f.rec),1), mxV=Math.max(...fam.map(f=>f.vol),1);
+  $("q1").innerHTML = fam.length ? `<div class="hd">Família</div><div class="hd">Receita</div><div class="hd">Unidades</div>` + fam.map(f=>{
+    const cls = F.fam? (F.fam===f.k?" sel":" dim"):"";
+    const tip = `<b>${esc(f.k)}</b><br>${money(f.rec)} · ${plural(f.vol,"venda","vendas")}<br>Ticket médio ${money(f.tic)}`;
+    return `<div class="nm">${esc(f.k)}</div>
+      <div class="bar${cls}" data-f="fam" data-v="${esc(f.k)}" data-tip="${esc(tip)}" role="button" tabindex="0" aria-label="Filtrar família ${esc(f.k)}"><i style="width:${f.rec/mxR*56}%"></i><span>${money(f.rec)}</span></div>
+      <div class="bar soft${cls}" data-f="fam" data-v="${esc(f.k)}" data-tip="${esc(tip)}"><i style="width:${f.vol/mxV*60}%"></i><span>${f.vol}</span></div>`;
+  }).join("") : EMPTY;
+  if(fam.length){
+    const top=fam[0], byVol=[...fam].sort((a,b)=>b.vol-a.vol)[0];
+    const lowTic=[...fam].sort((a,b)=>a.tic-b.tic)[0];
+    let t = `<b>${esc(top.k)}</b> lidera a receita com ${money(top.rec)} (${pct(top.rec,sum(fam.map(f=>f.rec)))}).`;
+    t += byVol.k===top.k ? ` Também é a que mais vende (${byVol.vol} unidades).` : ` Em volume, quem lidera é <b>${esc(byVol.k)}</b> (${byVol.vol} unidades).`;
+    if(fam.length>2) t += ` <b>${esc(lowTic.k)}</b> tem o menor ticket médio (${money(lowTic.tic)}): vende, mas rende menos por carro.`;
+    $("a1").innerHTML = t;
+  } else $("a1").textContent = "Sem vendas para comparar.";
+
+  // Q2 mapa
+  const r2 = D.filter(r=>match(r,"uf"));
+  const st = agg(r2,"uf"); const byUf = Object.fromEntries(st.map(s=>[s.k,s]));
+  const vals = st.map(s=>s[mapMetric]); const lo=Math.min(...vals), hi=Math.max(...vals);
+  const cs = getComputedStyle(document.documentElement);
+  const cLo = hex(cs.getPropertyValue("--ramp-lo")), cHi = hex(cs.getPropertyValue("--ramp-hi"));
+  const fmt = m=>v=> m==="vol"? plural(v,"venda","vendas") : money(v);
+  $("map").innerHTML = GRID.map(([uf,r,c])=>{
+    const s = byUf[uf]; const pos=`grid-row:${r+1};grid-column:${c+1}`;
+    if(!s) return `<div class="tile" style="${pos}" data-tip="${esc(`<b>${UFN[uf]}</b><br>Sem vendas`)}">${uf}</div>`;
+    const t = hi>lo? (s[mapMetric]-lo)/(hi-lo) : 1;
+    const col = mix(cLo,cHi,.15+.85*t);
+    const ink = lum(col)>.3? "var(--tile-ink-dark)":"var(--tile-ink-light)";
+    const sel = F.uf===uf? " sel":"";
+    const tip = `<b>${UFN[uf]} (${uf})</b><br>${money(s.rec)} · ${plural(s.vol,"venda","vendas")}<br>Ticket médio ${money(s.tic)}`;
+    return `<button type="button" class="tile has${sel}" style="${pos};background:${col};color:${ink}" data-f="uf" data-v="${uf}" data-tip="${esc(tip)}" aria-label="Filtrar ${UFN[uf]}">${uf}</button>`;
+  }).join("");
+  const ranked = [...st].sort((a,b)=>b[mapMetric]-a[mapMetric]).slice(0,5);
+  $("top5").innerHTML = ranked.length? "Top 5: " + ranked.map((s,i)=>`<span>${i+1}. ${s.k} <b>${fmt(mapMetric)(s[mapMetric])}</b></span>`).join("") : "";
+  if(st.length){
+    const sr=[...st].sort((a,b)=>b.rec-a.rec), tot2=sum(st.map(s=>s.rec));
+    const two = sr.slice(0,2); const share=sum(two.map(s=>s.rec));
+    const hiT = [...st].filter(s=>s.vol>=3).sort((a,b)=>b.tic-a.tic)[0];
+    let t = two.length>1 ? `<b>${UFN[two[0].k]}</b> e <b>${UFN[two[1].k]}</b> somam ${money(share)}, ${pct(share,tot2)} da receita.` : `Toda a receita está em <b>${UFN[two[0].k]}</b>: ${money(share)}.`;
+    if(hiT && st.length>3) t += ` Entre estados com 3 ou mais vendas, <b>${UFN[hiT.k]}</b> tem o maior ticket médio (${money(hiT.tic)}).`;
+    $("a2").innerHTML = t;
+  } else $("a2").textContent = "Sem vendas para comparar.";
+
+  // Q3 pagamento
+  const r3 = D.filter(r=>match(r,"pag"));
+  const pg = agg(r3,"pag").sort((a,b)=>b.tic-a.tic);
+  const mxT = Math.max(...pg.map(p=>p.tic),1);
+  const avg3 = r3.length? sum(r3.map(r=>r.preco))/r3.length : 0;
+  $("q3").innerHTML = pg.length? `<div class="hd">Método</div><div class="hd">Ticket médio · vendas</div>` + pg.map(p=>{
+    const cls = F.pag? (F.pag===p.k?" sel":" dim"):"";
+    const tip = `<b>${PAG[p.k]}</b><br>Ticket médio ${money(p.tic)}<br>${plural(p.vol,"venda","vendas")} · ${money(p.rec)}`;
+    return `<div class="nm">${PAG[p.k]}</div><div class="bar${cls}" data-f="pag" data-v="${esc(p.k)}" data-tip="${esc(tip)}" role="button" tabindex="0" aria-label="Filtrar ${PAG[p.k]}"><i style="width:${p.tic/mxT*52}%"></i><span>${money(p.tic)} · ${p.vol}</span></div>`;
+  }).join("") : EMPTY;
+  $("ref3").textContent = pg.length? `Ticket médio geral no recorte: ${money(avg3)}.` : "";
+  if(pg.length>1){
+    const a=pg[0], b=pg[pg.length-1];
+    $("a3").innerHTML = `Sim. Quem paga com <b>${PAG[a.k].toLowerCase()}</b> compra carros de ${money(a.tic)} em média, ${(a.tic/b.tic).toLocaleString("pt-BR",{maximumFractionDigits:1})}x o ticket de <b>${PAG[b.k].toLowerCase()}</b> (${money(b.tic)}).` + (pg.some(p=>p.vol<5)? " Métodos com menos de 5 vendas oscilam bastante." : "");
+  } else $("a3").textContent = pg.length? "Só há um método de pagamento neste recorte." : "Sem vendas para comparar.";
+
+  // Q4 combustível
+  const r4 = D.filter(r=>match(r,"comb"));
+  const fu = Object.fromEntries(agg(r4,"comb").map(o=>[o.k,o]));
+  const tv = r4.length, tr = sum(r4.map(r=>r.preco));
+  const seg = (k,var_,val,total,lab)=>{ const o=fu[k]; if(!o) return ""; const w=o[val]/total*100;
+    const tip=`<b>${k}</b><br>${pct(o[val],total)} ${lab}<br>${plural(o.vol,"venda","vendas")} · ${money(o.rec)}`;
+    return `<div style="width:${w}%;background:var(${var_});opacity:${F.comb&&F.comb!==k?.35:1}" data-f="comb" data-v="${k}" data-tip="${esc(tip)}">${w>=9?pct(o[val],total):""}</div>`; };
+  $("q4").innerHTML = tv? `<span class="nm">Vendas</span><div class="stack">${FUELS.map(([k,v])=>seg(k,v,"vol",tv,"das vendas")).join("")}</div>
+    <span class="nm">Receita</span><div class="stack">${FUELS.map(([k,v])=>seg(k,v,"rec",tr,"da receita")).join("")}</div>` : EMPTY;
+  $("leg4").innerHTML = FUELS.filter(([k])=>fu[k]).map(([k,v])=>`<span class="fl"><i style="background:var(${v})"></i>${k} <small>ticket ${money(fu[k].tic)} · ${fu[k].vol}</small></span>`).join("");
+  const e=fu["Elétrico"], c=fu["Combustão"];
+  if(e && tv){
+    let t = `Elétricos são <b>${pct(e.vol,tv)} das vendas</b> e <b>${pct(e.rec,tr)} da receita</b>.`;
+    if(c) t += e.tic>c.tic ? ` O ticket médio deles (${money(e.tic)}) fica acima do de combustão (${money(c.tic)}), então cada venda elétrica rende mais.` : ` O ticket médio deles (${money(e.tic)}) fica abaixo do de combustão (${money(c.tic)}).`;
+    $("a4").innerHTML = t;
+  } else $("a4").textContent = tv? "Nenhum elétrico neste recorte." : "Sem vendas para comparar.";
+
+  // Tabela
+  const famT = agg(rows,"fam").sort((a,b)=>b.rec-a.rec);
+  const mxS = Math.max(...famT.map(f=>f.rec),1);
+  $("tb").innerHTML = famT.length? famT.map(f=>{
+    const open = openFam.has(f.k);
+    const mods = agg(rows.filter(r=>r.fam===f.k),"modelo").sort((a,b)=>b.rec-a.rec);
+    const line = (o,lab,cls)=>`<tr class="${cls}"><td>${lab}</td><td>${o.vol}</td><td>${money(o.rec)}</td><td>${money(o.tic)}</td><td><span class="share">${pct(o.rec,tot)}<i style="width:${o.rec/mxS*60}px"></i></span></td></tr>`;
+    return line(f,`<button type="button" data-open="${esc(f.k)}" aria-expanded="${open}"><span class="chev">▸</span>${esc(f.k)} <span style="color:var(--muted);font-weight:400">${plural(mods.length,"modelo","modelos")}</span></button>`,"fam"+(open?" open":""))
+      + (open? mods.map(m=>line(m,esc(m.k),"mod")).join("") : "");
+  }).join("") : `<tr><td colspan="5" class="empty">Nenhuma venda com esses filtros.</td></tr>`;
+  $("tf").innerHTML = famT.length? `<tr><td>Total</td><td>${n}</td><td>${money(tot)}</td><td>${money(tot/n)}</td><td>100%</td></tr>` : "";
+}
+const openFam = new Set();
+
+function hex(s){s=s.trim().replace("#","");return [0,2,4].map(i=>parseInt(s.slice(i,i+2),16));}
+function mix(a,b,t){return "rgb("+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(",")+")";}
+function lum(rgb){const [r,g,b]=rgb.match(/\d+/g).map(Number).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*r+.7152*g+.0722*b;}
+
+// eventos
+[["fAno","ano"],["fReg","reg"],["fUf","uf"],["fFam","fam"],["fMod","mod"],["fPag","pag"],["fComb","comb"]].forEach(([id,k])=>{
+  $(id).addEventListener("change",e=>{ F[k]=""; setF(k,e.target.value); });
+});
+$("reset").addEventListener("click",()=>{ Object.keys(F).forEach(k=>F[k]=""); render(); });
+document.addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]"); if(o){ const k=o.dataset.open; openFam.has(k)?openFam.delete(k):openFam.add(k); render(); return; }
+  const t=e.target.closest("[data-f]"); if(t){ hideTip(); setF(t.dataset.f,t.dataset.v); }
+  const m=e.target.closest("[data-m]"); if(m){ mapMetric=m.dataset.m; document.querySelectorAll("[data-m]").forEach(b=>b.setAttribute("aria-pressed",b===m)); render(); }
+});
+document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ") && e.target.matches("[data-f][role=button]")){ e.preventDefault(); setF(e.target.dataset.f,e.target.dataset.v);} });
+const tip=$("tip");
+function hideTip(){tip.style.opacity=0;}
+document.addEventListener("pointermove",e=>{
+  const t=e.target.closest("[data-tip]"); if(!t){hideTip();return;}
+  tip.innerHTML=t.dataset.tip; tip.style.opacity=1;
+  const w=tip.offsetWidth,h=tip.offsetHeight; let x=e.clientX+14, y=e.clientY+14;
+  if(x+w>innerWidth-8) x=e.clientX-w-14; if(y+h>innerHeight-8) y=e.clientY-h-14;
+  tip.style.left=x+"px"; tip.style.top=y+"px";
+});
+document.addEventListener("pointerleave",hideTip);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",render);
+new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+render();
+</script>
+
+</body>
+</html>
