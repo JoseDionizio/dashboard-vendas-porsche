@@ -2,7 +2,9 @@
 
 Dashboard interativa em HTML, em arquivo único, construída a partir de uma planilha com 100 vendas da Porsche nos Estados Unidos. Projeto do desafio da DIO "transformar uma planilha de vendas em uma dashboard publicada na web".
 
-**Dashboard publicada:** https://SEU-USUARIO.github.io/dashboard-vendas-porsche/
+**Dashboard publicada:** https://josedionizio.github.io/dashboard-vendas-porsche/
+
+**Repositório:** https://github.com/JoseDionizio/dashboard-vendas-porsche
 
 ![Visão geral da dashboard](docs/print-geral.png)
 
